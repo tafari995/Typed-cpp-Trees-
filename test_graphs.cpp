@@ -10,19 +10,24 @@ int main(){
   string a_str = "buttercup";
   Node<int> v(an_int);
   Node<std::string> w(a_str);
-  v.node_print();
-  w.node_print();
+  // v.node_print();
+  // w.node_print();
+  
+  int another_int = -7;
+  Node<int> v_2(another_int);
 
-  TreeClass treeobj(v);
-  // PtrSet<int> first_children = treeobj.get_ch(v); 
-  Node<int> v2(-7);
   Node<int>* p = &v;
-  Node<int>* p2 = &v2;
-  // first_children.insert(p2);
-  treeobj.insert_child(p,v2);
+  TreeClass treeobj(p);
+  Node<int>* p_2 = n2p(v_2);
+
+  treeobj.insert_child(p,p_2);
+
   for(const auto& child : treeobj.get_ch(p)){
-    (*child).node_print();
+    cout << "\n" << endl;
+    p2n(child).node_print();
+    p2n(child).node_print();
+
   };
-  cout << treeobj.is_tree_still() << endl;
+  // cout << std::boolalpha << treeobj.is_tree_still() << endl;
   return 0;
 }

@@ -1,5 +1,6 @@
 #ifndef NODE_H
 #define NODE_H
+#include "NodeHelpers.h"
 #include <iostream>
 #include <string>
 #include <type_traits>
@@ -7,13 +8,14 @@
 #include <functional>
 using namespace std;
 
+// Node Class Definition
 template <class T>
 class Node {
   private:
     T value;
   public:
     Node(T v);
-    void node_print();
+    void node_print() const;
     const T& v() const;
     
 };
@@ -35,32 +37,23 @@ const T& Node<T>::v() const
 };
 
 
+// prints out value at a given node
+template <class T>
+void Node<T>::node_print() const
+{ 
+  cout << "node_value = " <<  get_string(value) << endl;
+};
+
+
+//---------------------------------------------------
+
+// NODE EQUALITY
+
 // defines Node equality; two nodes are equal iff their values are equal
 template <class T>
 bool operator==(const Node<T>& node, const Node<T>& other) 
 {
   return node.v()==other.v();
-};
-
-
-// turns value of type T into a string, if it's not one already
-template <class T>
-std::string get_string(T value) 
-{
-  if constexpr (std::is_same_v<T, std::string>) {
-    return value; 
-  } 
-  else {
-    return std::to_string(value); 
-  }
-};
-
-
-// prints out value at a given node
-template <class T>
-void Node<T>::node_print()
-{ 
-  cout << "node_value = " <<  get_string(value) << endl;
 };
 
 
@@ -74,6 +67,29 @@ struct NodeHash {
 };
 
 //---------------------------------------------------------
+
+// pointer -> node -> pointer converter functions
+
+/* BROKEN: currently, these functions are not inverses of each other,
+but I want them to be so that nodes don't change values when we 
+convert them to pointers and back again */
+
+template <class T>
+Node<T>* n2p(Node<T> node)
+{
+  Node<T>* ptr = &node;
+  return ptr;
+};
+
+template <class T>
+Node<T> p2n(Node<T>* ptr)
+{
+  return *ptr;
+};
+
+//---------------------------------------------------------
+
+// NODE POINTER HASH AND EQUALITY 
 
 // Custom Hash: Hashes the 'value' member of the pointed-to object
 template <class T>
@@ -95,23 +111,6 @@ struct NodePtrEqual {
 
 #endif // NODE_H
 
-/* claude wrote this 
-bool operator==(const Node& other) const {
-return value==other.value
-}
-claude also made up this strange little hash function and used like so...
-nammespace std {
-    template <class T>
-    struct hash<Node<T>>{
-      size_t operator()(const Node<T>& n) const {
-        size_t hsh = hash<T>{}(n.v());
-        return hsh;
-      }
-    };
-}
-hypothetically, this was enough to use nodes as
-keys in an unordered map, though i did not test the code claude wrote!
-*/
 
 /* growing skeptical of using member 
 initialization with template classes, code may work

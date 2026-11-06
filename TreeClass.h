@@ -8,23 +8,19 @@
 
 using namespace std;
 
-/*
-template <class T>
-using PtrSet = std::unordered_set<Node<T>*, NodePtrHash<T>, NodePtrEqual<T>>;
-*/
 
 template <class T>
 class TreeClass
 {
   private:
     std::unordered_map< Node<T>*, PtrSet<T>, NodePtrHash<T> > tree;
-    std::unordered_set< Node<T>, NodeHash<T> > nodebank;
+    std::unordered_set< Node<T>, NodeHash<T> > nodebank;  // I think we want to rewrite the class without a nodebank
     Node<T>* root;
   public:
-    TreeClass(Node<T> n1);
+    TreeClass(Node<T>* n1);
     PtrSet<T>& get_ch(Node<T>* n);
-    void insert_parent(Node<T> new_parent);
-    void insert_child(Node<T>* parent, Node<T> baby);
+    void insert_parent(Node<T>* new_parent);
+    void insert_child(Node<T>* parent, Node<T>* baby);
     void abort_child(Node<T>* parent, Node<T>* baby);
     void abort_parent(Node<T>* parent);
     bool is_tree_still();
@@ -33,20 +29,17 @@ class TreeClass
 
 
 template <class T>
-TreeClass<T>::TreeClass(Node<T> n1)
+TreeClass<T>::TreeClass(Node<T>* n1)
 {
-  root = &n1;
-  nodebank.insert(n1);
+  root = n1;
   tree[root] = {}; /* by definition, trees are nonempty and have one parent! */
 };
 
 
 template <class T>
-void TreeClass<T>::insert_parent(Node<T> new_parent)
+void TreeClass<T>::insert_parent(Node<T>* new_parent)
 {
-  nodebank.insert(new_parent);
-  Node<T>* new_par_ptr = &new_parent;
-  tree[new_par_ptr] = {};
+  tree[new_parent] = {};
 };
 
 
@@ -58,14 +51,10 @@ PtrSet<T>& TreeClass<T>::get_ch(Node<T>* n)
 
 
 template <class T>
-void TreeClass<T>::insert_child(Node<T>* parent, Node<T> baby)
+void TreeClass<T>::insert_child(Node<T>* parent, Node<T>* baby)
 {
-  if( &baby != root ){
-    nodebank.insert(baby);
-    Node<T>* baby_ptr = &baby;
-    PtrSet<T>& children = get_ch(parent);
-    children.insert(baby_ptr);
-  }
+  PtrSet<T>& children = get_ch(parent);
+  children.insert(baby);
 };
 
 
@@ -73,7 +62,6 @@ template <class T>
 void TreeClass<T>::abort_child(Node<T>* parent, Node<T>* baby)
 {
   (tree[parent]).erase(baby);
-  nodebank.erase( (*baby) );
 };
 
 
@@ -89,29 +77,51 @@ void TreeClass<T>::abort_parent(Node<T>* parent)
 };
 
 
+/* BROKEN; needs to be fixed so it doesn't use the nodebank */
 template <class T>
 bool TreeClass<T>::is_tree_still()
 {
-  bool is_tree;
+  bool is_tree = true;
   std::unordered_set< Node<T>, NodeHash<T> > nodetotal = { *root };
   for(const auto& p : tree){
     for(const auto& q : tree){
-      Node<T>* p_key=p.first;
-      Node<T>* q_key=q.first;
-      if( (p_key != q_key) && !is_disjoint(p.second,q.second) ){
-        is_tree=false;
-        return is_tree;
+      Node<T>* p_k = p.first;
+      Node<T>* q_k = q.first;
+      if( (p_k != q_k) && !is_disjoint(p.second,q.second) ){
+        cout << "oh no, my child sets overlap!" << endl;
+        is_tree = false;
       }
     }
-    for(const auto& e : p.second){
-      nodetotal.insert(*e);
-    }  
+      
   }
+  for(const auto& kv : tree){
+    PtrSet<T> kv2 = kv.second;
+    cout << kv2.size() << endl;
+    NodeSet<T> nfp = ptr_to_node(kv2);
+    cout << nfp.size() << endl;
+    cout << "individual nodetotal elements: ";
+    for( auto n_i : nfp){
+      n_i.node_print();
+    }
+    cout << endl;
+    union_rep1(nodetotal, nfp);
+  }
+
+  // checking what the elements of both sets are by value, for debug 
+  cout << "Nodebank Elements:" << endl;
+  for( auto x : nodebank){
+    x.node_print();
+  }
+  cout << "Nodetotal Elements:" << endl;
+  for( auto y : nodetotal){
+    y.node_print();
+  }
+  //debugging code ends here!
+  
   if(nodetotal != nodebank){
-    is_tree=false;
-    return is_tree;
+    cout << "oh no, there are nodes in the nodebank which are neither parents nor children" << endl;
+    is_tree = false;
   }
-  is_tree = true;
   return is_tree;
 }
 

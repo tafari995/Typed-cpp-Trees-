@@ -19,15 +19,15 @@ int main(){
   Node<int>* p = &v;
   TreeClass treeobj(p);
   Node<int>* p_2 = n2p(v_2);
-
+  /*
   treeobj.insert_child(p,p_2);
-
-  for(const auto& child : treeobj.get_ch(p)){
+  PtrSet<int> allnodes = treeobj.get_full_family();
+  for(const auto& n : allnodes){
     cout << "\n" << endl;
-    p2n(child).node_print();
-    p2n(child).node_print();
+    (*n).node_print();
+  }
 
-  };
-  // cout << std::boolalpha << treeobj.is_tree_still() << endl;
+  cout << std::boolalpha << treeobj.is_tree_still() << endl;
+  */
   return 0;
 }

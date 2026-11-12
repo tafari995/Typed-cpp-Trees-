@@ -14,10 +14,11 @@ class TreeClass
 {
   private:
     std::unordered_map< Node<T>*, PtrSet<T>, NodePtrHash<T> > tree;
-    std::unordered_set< Node<T>, NodeHash<T> > nodebank;  // I think we want to rewrite the class without a nodebank
+    PtrSet<T>* family;  
     Node<T>* root;
   public:
     TreeClass(Node<T>* n1);
+    PtrSet<T>& get_full_family();
     PtrSet<T>& get_ch(Node<T>* n);
     void insert_parent(Node<T>* new_parent);
     void insert_child(Node<T>* parent, Node<T>* baby);
@@ -32,14 +33,20 @@ template <class T>
 TreeClass<T>::TreeClass(Node<T>* n1)
 {
   root = n1;
+  *family = { root };
   tree[root] = {}; /* by definition, trees are nonempty and have one parent! */
 };
 
 
 template <class T>
-void TreeClass<T>::insert_parent(Node<T>* new_parent)
+PtrSet<T>& TreeClass<T>::get_full_family()
 {
-  tree[new_parent] = {};
+  for(const auto& kv : tree){
+    const PtrSet<T>& v = kv.second;
+    (*family).insert(kv.first);
+    (*family).insert(v.begin(),v.end());
+  }
+  return *family;
 };
 
 
@@ -51,8 +58,17 @@ PtrSet<T>& TreeClass<T>::get_ch(Node<T>* n)
 
 
 template <class T>
+void TreeClass<T>::insert_parent(Node<T>* new_parent)
+{
+  (*family).insert(new_parent);
+  tree[new_parent] = {};
+};
+
+
+template <class T>
 void TreeClass<T>::insert_child(Node<T>* parent, Node<T>* baby)
 {
+  (*family).insert(baby);
   PtrSet<T>& children = get_ch(parent);
   children.insert(baby);
 };
@@ -61,6 +77,7 @@ void TreeClass<T>::insert_child(Node<T>* parent, Node<T>* baby)
 template <class T>
 void TreeClass<T>::abort_child(Node<T>* parent, Node<T>* baby)
 {
+  (*family).erase(baby);
   (tree[parent]).erase(baby);
 };
 
@@ -69,6 +86,7 @@ template <class T>
 void TreeClass<T>::abort_parent(Node<T>* parent)
 {
   if( parent != root ){
+    (*family).erase(parent);
     tree.erase(parent);
   }
   else {
@@ -82,44 +100,26 @@ template <class T>
 bool TreeClass<T>::is_tree_still()
 {
   bool is_tree = true;
-  std::unordered_set< Node<T>, NodeHash<T> > nodetotal = { *root };
+  PtrSet<T>  nodes_accounted_for = { root };
+
   for(const auto& p : tree){
     for(const auto& q : tree){
-      Node<T>* p_k = p.first;
-      Node<T>* q_k = q.first;
+      const Node<T>* p_k=p.first;
+      const Node<T>* q_k=q.first;
       if( (p_k != q_k) && !is_disjoint(p.second,q.second) ){
         cout << "oh no, my child sets overlap!" << endl;
         is_tree = false;
       }
-    }
-      
-  }
-  for(const auto& kv : tree){
-    PtrSet<T> kv2 = kv.second;
-    cout << kv2.size() << endl;
-    NodeSet<T> nfp = ptr_to_node(kv2);
-    cout << nfp.size() << endl;
-    cout << "individual nodetotal elements: ";
-    for( auto n_i : nfp){
-      n_i.node_print();
-    }
-    cout << endl;
-    union_rep1(nodetotal, nfp);
+    }    
   }
 
-  // checking what the elements of both sets are by value, for debug 
-  cout << "Nodebank Elements:" << endl;
-  for( auto x : nodebank){
-    x.node_print();
+  for(const auto& kv : tree){
+    const PtrSet<T>& kids = kv.second;
+    union_rep1(nodes_accounted_for, kids);
   }
-  cout << "Nodetotal Elements:" << endl;
-  for( auto y : nodetotal){
-    y.node_print();
-  }
-  //debugging code ends here!
   
-  if(nodetotal != nodebank){
-    cout << "oh no, there are nodes in the nodebank which are neither parents nor children" << endl;
+  if(nodes_accounted_for != (*family)){
+    cout << "oh no, there are nodes in the family which are unaccounted for!" << endl;
     is_tree = false;
   }
   return is_tree;

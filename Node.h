@@ -47,7 +47,7 @@ void Node<T>::node_print() const
 
 //---------------------------------------------------
 
-// NODE EQUALITY
+// NODE EQUALITY AND NODE HASH
 
 // defines Node equality; two nodes are equal iff their values are equal
 template <class T>
@@ -70,26 +70,21 @@ struct NodeHash {
 
 // pointer -> node -> pointer converter functions
 
-/* BROKEN: currently, these functions are not inverses of each other,
-but I want them to be so that nodes don't change values when we 
-convert them to pointers and back again */
-
 template <class T>
-Node<T>* n2p(Node<T> node)
+Node<T>* n2p(Node<T>& node)
 {
-  Node<T>* ptr = &node;
-  return ptr;
+  return &node; 
 };
 
 template <class T>
-Node<T> p2n(Node<T>* ptr)
+Node<T>& p2n(Node<T>* ptr)
 {
   return *ptr;
 };
 
 //---------------------------------------------------------
 
-// NODE POINTER HASH AND EQUALITY 
+// NODE POINTER HASH AND NODE POINTER EQUALITY 
 
 // Custom Hash: Hashes the 'value' member of the pointed-to object
 template <class T>

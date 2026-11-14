@@ -14,7 +14,7 @@ class TreeClass
 {
   private:
     std::unordered_map< Node<T>*, PtrSet<T>, NodePtrHash<T> > tree;
-    PtrSet<T>* family;  
+    PtrSet<T> family;  
     Node<T>* root;
   public:
     TreeClass(Node<T>* n1);
@@ -33,7 +33,7 @@ template <class T>
 TreeClass<T>::TreeClass(Node<T>* n1)
 {
   root = n1;
-  *family = { root };
+  family = { root };
   tree[root] = {}; /* by definition, trees are nonempty and have one parent! */
 };
 
@@ -43,10 +43,10 @@ PtrSet<T>& TreeClass<T>::get_full_family()
 {
   for(const auto& kv : tree){
     const PtrSet<T>& v = kv.second;
-    (*family).insert(kv.first);
-    (*family).insert(v.begin(),v.end());
+    family.insert(kv.first);
+    family.insert(v.begin(),v.end());
   }
-  return *family;
+  return family;
 };
 
 
@@ -60,7 +60,7 @@ PtrSet<T>& TreeClass<T>::get_ch(Node<T>* n)
 template <class T>
 void TreeClass<T>::insert_parent(Node<T>* new_parent)
 {
-  (*family).insert(new_parent);
+  family.insert(new_parent);
   tree[new_parent] = {};
 };
 
@@ -68,7 +68,7 @@ void TreeClass<T>::insert_parent(Node<T>* new_parent)
 template <class T>
 void TreeClass<T>::insert_child(Node<T>* parent, Node<T>* baby)
 {
-  (*family).insert(baby);
+  family.insert(baby);
   PtrSet<T>& children = get_ch(parent);
   children.insert(baby);
 };
@@ -77,7 +77,7 @@ void TreeClass<T>::insert_child(Node<T>* parent, Node<T>* baby)
 template <class T>
 void TreeClass<T>::abort_child(Node<T>* parent, Node<T>* baby)
 {
-  (*family).erase(baby);
+  family.erase(baby);
   (tree[parent]).erase(baby);
 };
 
@@ -86,7 +86,7 @@ template <class T>
 void TreeClass<T>::abort_parent(Node<T>* parent)
 {
   if( parent != root ){
-    (*family).erase(parent);
+    family.erase(parent);
     tree.erase(parent);
   }
   else {
@@ -118,7 +118,7 @@ bool TreeClass<T>::is_tree_still()
     union_rep1(nodes_accounted_for, kids);
   }
   
-  if(nodes_accounted_for != (*family)){
+  if(nodes_accounted_for != family){
     cout << "oh no, there are nodes in the family which are unaccounted for!" << endl;
     is_tree = false;
   }

@@ -25,6 +25,7 @@ class TreeClass
     void abort_child(Node<T>* parent, Node<T>* baby);
     void abort_parent(Node<T>* parent);
     bool is_tree_still();
+    int tree_search(Node<T>* lost_node);
 };
 
 
@@ -123,6 +124,30 @@ bool TreeClass<T>::is_tree_still()
     is_tree = false;
   }
   return is_tree;
+}
+
+template <class T>
+int TreeClass<T>::tree_search(Node<T>* lost_node)
+{
+  PtrSet<T> current_depth = { root };
+  int j = 0;
+  while(j< family.size()){
+    PtrSet<T> next_depth = {};
+    if( current_depth.find(lost_node) != current_depth.end() ){
+      cout << "We found the node we sought, with ( " << endl; 
+      (*lost_node).node_print(); 
+      cout << " )" << endl;
+      return j;
+    }
+    else{
+      for(const auto& n : current_depth){
+        union_rep1(next_depth, tree[n]);
+      } 
+    }
+    current_depth = next_depth;
+    j+=1;
+  }
+  return -1;
 }
 
 #endif // TREECLASS_H
